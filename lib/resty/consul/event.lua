@@ -173,7 +173,7 @@ function _M:watch(name, callback)
       insert(t, spawn(watch_event, ctx))
 
     elseif res[1] == "event" then
-      ngx_log(ngx_DEBUG, "callback returned ", res[3])
+      ngx_log(ngx_DEBUG, "callback returned ", tostring(res[3]))
 
     else
       ngx_log(ngx_WARN, "invalid thread return type ", tostring(res[1]))
