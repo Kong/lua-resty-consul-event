@@ -7,6 +7,7 @@ local cjson = require "cjson.safe"
 
 local ngx_DEBUG = ngx.DEBUG
 local ngx_ERR   = ngx.ERR
+local ngx_WARN  = ngx.WARN
 
 
 local co_status    = coroutine.status
@@ -167,10 +168,15 @@ function _M:watch(name, callback)
         end
       end
 
+      -- after firing any potential callbacks, re-spawn a
+      -- thread to watch for new events
       insert(t, spawn(watch_event, ctx))
 
     elseif res[1] == "event" then
       ngx_log(ngx_DEBUG, "callback returned ", res[3])
+
+    else
+      ngx_log(ngx_WARN, "invalid thread return type ", tostring(res[1]))
     end
   end
 end
