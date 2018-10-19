@@ -97,10 +97,10 @@ local function watch_event(ctx)
   local new_events = {}
 
   for _, event in ipairs(events) do
-    if event.LTime > ctx.ltime then
-      insert(new_events, event)
+    if not ctx.ltime_lru:get(event.LTime) then
+      ctx.ltime_lru:set(event.LTime, true)
 
-      ctx.ltime = event.LTime
+      insert(new_events, event)
     end
   end
 
@@ -209,6 +209,12 @@ function _M.new(opts)
     return false, "invalid ssl"
   end
 
+  local lrucache = require "resty.lrucache"
+  local lru, err = lrucache.new(256)
+  if err then
+    return false, err
+  end
+
   return setmetatable({
     host       = opts.host,
     port       = opts.port,
@@ -216,7 +222,7 @@ function _M.new(opts)
     ssl_verify = opts.ssl_verify,
 
     -- index = nil,
-    ltime = 0,
+    ltime_lru = lru,
   }, mt)
 end
 
