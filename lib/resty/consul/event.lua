@@ -159,13 +159,12 @@ function _M:watch(name, callback)
     if res[1] == "watch" then
       if not res[2] then
         ngx_log(ngx_ERR, "error in fetching events: ", res[3])
-
-        -- retry
-        insert(t, spawn(watch_event, ctx))
       end
 
-      for _, event in ipairs(res[3]) do
-        insert(t, spawn(fire_callback, ctx, event))
+      if type(res[3]) == "table" then
+        for _, event in ipairs(res[3]) do
+          insert(t, spawn(fire_callback, ctx, event))
+        end
       end
 
       insert(t, spawn(watch_event, ctx))
