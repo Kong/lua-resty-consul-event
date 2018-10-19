@@ -60,7 +60,7 @@ Instantiates a new watch object. `opts` may be a table with the following option
 
 `syntax: e:watch(name, callback)`
 
-Watch the Consul events API for events broadcast under a given `name`, and execute the function `callback` . `callback` is passed a single parameter `event`, which contains the body of a single event as defined by the [Consul Events API](https://www.consul.io/api/event.html)
+Watch the Consul events API for events broadcast under a given `name`, and execute the function `callback` . `callback` is passed a single parameter `event`, which contains the body of a single event as defined by the [Consul Events API](https://www.consul.io/api/event.html). Callback functions are wrapped in `pcall`, so it is safe to throw an error from within this function. Callback functions may return a single value but this value is largely meaningless; currently, this single value is logged as a debug entry.
 
 *Note: This body of this function runs in an infinite loop in order to watch the Consul events API indefinitely. As a result, it is strongly recommended to call this function inside a background timer generated via ngx.timer.at*
 
