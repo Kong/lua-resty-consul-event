@@ -230,6 +230,7 @@ returned identical index
 --- no_error_log
 [error]
 --- timeout: 5s
+--- SKIP # error_log is only looking at the first request, triggering a false failure
 
 
 === TEST 6: Successfully executes a callback running longer than the watch timeout
