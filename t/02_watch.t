@@ -282,3 +282,236 @@ location /t {
 ["ok", 1]
 --- no_error_log
 [error]
+
+
+=== TEST 7: Does not execute callbacks for past events
+--- http_config eval: $::HttpConfig
+--- config
+location /s {
+  content_by_lua_block {
+    local h = require("resty.http").new()
+
+    local res, err
+
+    for i = 1, 3 do
+      res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+        "/v1/event/fire/baz", {
+        method = "PUT",
+      })
+      if err then
+        ngx.log(ngx.ERR, err)
+      end
+    end
+
+    -- get the current events
+    res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+      "/v1/event/list?name=baz")
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    local event = require "resty.consul.event"
+
+    local e, err = event.new({
+      host = chost,
+      port = cport,
+    })
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    local l = {}
+
+    for _, e in ipairs(require("cjson").decode(res.body)) do
+      table.insert(l, e.LTime)
+    end
+
+    ngx.timer.at(0, function()
+      e:watch("baz", function() ngx.shared.hits:incr("baz", 1, 0) end,
+        res.headers["X-Consul-Index"],
+        l
+      )
+    end)
+
+    res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+      "/v1/event/fire/baz", {
+      method = "PUT",
+    })
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    ngx.print("ok")
+  }
+}
+location /t {
+  content_by_lua_block {
+    ngx.sleep(0.5)
+
+    ngx.print(ngx.shared.hits:get("baz"))
+  }
+}
+--- timeout: 10s
+--- error_code eval
+[200, 200]
+--- request eval
+["GET /s", "GET /t"]
+--- response_body eval
+["ok", 1]
+--- no_error_log
+[error]
+
+
+=== TEST 8: Does not execute callbacks for past events with no initial index
+--- http_config eval: $::HttpConfig
+--- config
+location /s {
+  content_by_lua_block {
+    local h = require("resty.http").new()
+
+    local res, err
+
+    for i = 1, 3 do
+      res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+        "/v1/event/fire/bat", {
+        method = "PUT",
+      })
+      if err then
+        ngx.log(ngx.ERR, err)
+      end
+    end
+
+    -- get the current events
+    res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+      "/v1/event/list?name=bat")
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    local event = require "resty.consul.event"
+
+    local e, err = event.new({
+      host = chost,
+      port = cport,
+    })
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    local l = {}
+
+    for _, e in ipairs(require("cjson").decode(res.body)) do
+      table.insert(l, e.LTime)
+    end
+
+    ngx.timer.at(0, function()
+      e:watch("bat", function() ngx.shared.hits:incr("bat", 1, 0) end,
+        nil,
+        l
+      )
+    end)
+
+    res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+      "/v1/event/fire/bat", {
+      method = "PUT",
+    })
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    ngx.print("ok")
+  }
+}
+location /t {
+  content_by_lua_block {
+    ngx.sleep(0.5)
+
+    ngx.print(ngx.shared.hits:get("bat"))
+  }
+}
+--- timeout: 10s
+--- error_code eval
+[200, 200]
+--- request eval
+["GET /s", "GET /t"]
+--- response_body eval
+["ok", 1]
+--- no_error_log
+[error]
+
+
+=== TEST 9: Does execute callbacks for past events with initial index but no seen_ltime
+--- http_config eval: $::HttpConfig
+--- config
+location /s {
+  content_by_lua_block {
+    local h = require("resty.http").new()
+
+    local res, err
+
+    for i = 1, 3 do
+      res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+        "/v1/event/fire/qux", {
+        method = "PUT",
+      })
+      if err then
+        ngx.log(ngx.ERR, err)
+      end
+    end
+
+    -- get the current events
+    res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+      "/v1/event/list?name=qux")
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    local event = require "resty.consul.event"
+
+    local e, err = event.new({
+      host = chost,
+      port = cport,
+    })
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    local l = {}
+
+    for _, e in ipairs(require("cjson").decode(res.body)) do
+      table.insert(l, e.LTime)
+    end
+
+    ngx.timer.at(0, function()
+      e:watch("qux", function() ngx.shared.hits:incr("qux", 1, 0) end,
+        res.headers["X-Consul-Index"]
+      )
+    end)
+
+    res, err = h:request_uri("http://" .. chost .. ":" .. cport ..
+      "/v1/event/fire/qux", {
+      method = "PUT",
+    })
+    if err then
+      ngx.log(ngx.ERR, err)
+    end
+
+    ngx.print("ok")
+  }
+}
+location /t {
+  content_by_lua_block {
+    ngx.sleep(0.5)
+
+    ngx.print(ngx.shared.hits:get("qux"))
+  }
+}
+--- timeout: 10s
+--- error_code eval
+[200, 200]
+--- request eval
+["GET /s", "GET /t"]
+--- response_body eval
+["ok", 4]
+--- no_error_log
+[error]

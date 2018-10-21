@@ -120,12 +120,22 @@ end
 -- spawns a thread to listen for events
 -- when a response is received, respawn the listen thread,
 -- and spawn threads for each event callback
-function _M:watch(name, callback)
+function _M:watch(name, callback, initial_index, seen_ltime)
   local t = {} -- threads table
 
   local ctx    = copy(self)
   ctx.name     = name
   ctx.callback = callback
+
+  if initial_index then
+    ctx.index = initial_index
+  end
+
+  if seen_ltime then
+    for i = 1, #seen_ltime do
+      ctx.ltime_lru:set(seen_ltime[i], true)
+    end
+  end
 
   -- bootstrap the first event watch thread
   insert(t, spawn(watch_event, ctx))
