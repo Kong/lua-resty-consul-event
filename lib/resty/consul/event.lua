@@ -65,6 +65,7 @@ local function watch_event(ctx)
     },
     headers = {
       ["User-Agent"] = _M.user_agent,
+      ["Connection"] = "close",
     },
     ssl_verify = ctx.ssl_verify,
   })
