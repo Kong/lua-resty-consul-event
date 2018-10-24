@@ -21,6 +21,7 @@ local setmetatable = setmetatable
 local spawn        = ngx.thread.spawn
 local tostring     = tostring
 local wait         = ngx.thread.wait
+local exiting      = ngx.worker.exiting
 
 
 local EVENTS_ENDPOINT = "/v1/event/list"
@@ -166,6 +167,10 @@ function _M:watch(name, callback, initial_index, seen_ltime)
       if co_status(co) == "dead" then
         remove(t, i)
       end
+    end
+
+    if exiting() then
+      break
     end
 
     if res[1] == "watch" then
