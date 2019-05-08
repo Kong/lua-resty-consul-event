@@ -233,3 +233,28 @@ false
 invalid timeout
 --- no_error_log
 [error]
+
+
+=== TEST 10: new with an invalid token value
+--- http_config eval: $::HttpConfig
+--- config
+location /t {
+  content_by_lua_block {
+    local e = require "resty.consul.event"
+
+    local event, err = e.new({
+      token = true
+    })
+
+    ngx.say(type(event) == "table")
+    ngx.say(err)
+  }
+}
+--- request
+GET /t
+--- error_code: 200
+--- response_body
+false
+invalid token
+--- no_error_log
+[error]

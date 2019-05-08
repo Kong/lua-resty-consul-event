@@ -67,6 +67,7 @@ local function watch_event(ctx)
     headers = {
       ["User-Agent"] = _M.user_agent,
       ["Connection"] = "close",
+      ["X-Consul-Token"] = ctx.token,
     },
     ssl_verify = ctx.ssl_verify,
   })
@@ -223,6 +224,9 @@ function _M.new(opts)
   if type(opts.ssl_verify) ~= "boolean" then
     return false, "invalid ssl"
   end
+  if opts.token ~= nil and type(opts.token) ~= "string" then
+    return false, "invalid token"
+  end
 
   local lrucache = require "resty.lrucache"
   local lru, err = lrucache.new(256)
@@ -235,6 +239,7 @@ function _M.new(opts)
     port       = opts.port,
     timeout    = opts.timeout,
     ssl_verify = opts.ssl_verify,
+    token      = opts.token,
 
     -- index = nil,
     ltime_lru = lru,
