@@ -55,6 +55,7 @@ Instantiates a new watch object. `opts` may be a table with the following option
  * `port`: Number defining the Consul port
  * `timeout`: Number, in seconds, to pass to Consul blocking query API via the `wait` parameter. This value is also used to to define TCP layer timeouts, which are set higher than the application-layer timeout.
  * `ssl_verify`: Boolean defining whether to validate the TLS certificate presented by the remote Consul server.
+ * `token`: String defining the Consul ACL token to send via the `X-Consul-Token` request header.
 
 ## watch
 
