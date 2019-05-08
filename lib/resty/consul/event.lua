@@ -11,6 +11,7 @@ local ngx_ERR   = ngx.ERR
 local ngx_WARN  = ngx.WARN
 
 
+local abs          = math.abs
 local co_status    = coroutine.status
 local ipairs       = ipairs
 local insert       = table.insert
@@ -44,7 +45,7 @@ local mt = { __index = _M }
 local function backoff(ctx)
   ctx.failures = ctx.failures + 1
 
-  sleep(min(MAX_SLEEP, lshift(125, ctx.failures) / 1000))
+  sleep(min(MAX_SLEEP, abs(lshift(125, ctx.failures) / 1000)))
 end
 
 
