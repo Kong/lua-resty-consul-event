@@ -45,7 +45,7 @@ local mt = { __index = _M }
 local function backoff(ctx)
   ctx.failures = ctx.failures + 1
 
-  sleep(min(MAX_SLEEP, abs(lshift(125, ctx.failures) / 1000)))
+  sleep(min(MAX_SLEEP, abs(lshift(125, min(MAX_SLEEP, ctx.failures)) / 1000)))
 end
 
 
