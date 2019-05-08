@@ -1,6 +1,7 @@
 local _M = {}
 
 
+local bit   = require "bit"
 local http  = require "resty.http"
 local cjson = require "cjson.safe"
 
@@ -13,11 +14,14 @@ local ngx_WARN  = ngx.WARN
 local co_status    = coroutine.status
 local ipairs       = ipairs
 local insert       = table.insert
+local lshift       = bit.lshift
+local min          = math.min
 local ngx_log      = ngx.log
 local pairs        = pairs
 local pcall        = pcall
 local remove       = table.remove
 local setmetatable = setmetatable
+local sleep        = ngx.sleep
 local spawn        = ngx.thread.spawn
 local tostring     = tostring
 local wait         = ngx.thread.wait
@@ -26,6 +30,7 @@ local exiting      = ngx.worker.exiting
 
 local EVENTS_ENDPOINT = "/v1/event/list"
 local INDEX_HEADER = "X-Consul-Index"
+local MAX_SLEEP = 30 -- 30s max sleep during failure backoff
 
 
 _M.version = "0.1"
@@ -34,6 +39,13 @@ _M.user_agent = "lua-resty-consul-events/" .. _M.version ..
 
 
 local mt = { __index = _M }
+
+
+local function backoff(ctx)
+  ctx.failures = ctx.failures + 1
+
+  sleep(min(MAX_SLEEP, lshift(125, ctx.failures) / 1000))
+end
 
 
 local function copy(o)
@@ -178,7 +190,11 @@ function _M:watch(name, callback, initial_index, seen_ltime)
       if not res[2] then
         ngx_log(ngx_ERR, "error in fetching events: ", res[3])
 
+        backoff(ctx)
+
       else
+        ctx.failures = 0
+
         for _, event in ipairs(res[3]) do
           insert(t, spawn(fire_callback, ctx, event))
         end
@@ -243,6 +259,7 @@ function _M.new(opts)
 
     -- index = nil,
     ltime_lru = lru,
+    failures = 0,
   }, mt)
 end
 
