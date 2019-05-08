@@ -34,7 +34,7 @@ local INDEX_HEADER = "X-Consul-Index"
 local MAX_SLEEP = 30 -- 30s max sleep during failure backoff
 
 
-_M.version = "0.1"
+_M.version = "0.2"
 _M.user_agent = "lua-resty-consul-events/" .. _M.version ..
                 "(Lua) ngx_lua/" .. ngx.config.ngx_lua_version
 

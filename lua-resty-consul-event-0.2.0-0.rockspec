@@ -1,8 +1,8 @@
 package = "lua-resty-consul-event"
-version = "0.1.1-0"
+version = "0.2.0-0"
 source = {
   url = "git://github.com/kong/lua-resty-consul-event",
-  tag = "0.1.1"
+  tag = "0.2.0"
 }
 description = {
   summary  = "Consul Events HTTP API Wrapper for OpenResty",
