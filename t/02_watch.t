@@ -323,7 +323,7 @@ location /s {
     local l = {}
 
     for _, e in ipairs(require("cjson").decode(res.body)) do
-      table.insert(l, e.LTime)
+      table.insert(l, e.ID)
     end
 
     ngx.timer.at(0, function()
@@ -401,7 +401,7 @@ location /s {
     local l = {}
 
     for _, e in ipairs(require("cjson").decode(res.body)) do
-      table.insert(l, e.LTime)
+      table.insert(l, e.ID)
     end
 
     ngx.timer.at(0, function()
@@ -440,7 +440,7 @@ location /t {
 [error]
 
 
-=== TEST 9: Does execute callbacks for past events with initial index but no seen_ltime
+=== TEST 9: Does execute callbacks for past events with initial index but no seen_ids
 --- http_config eval: $::HttpConfig
 --- config
 location /s {
@@ -479,7 +479,7 @@ location /s {
     local l = {}
 
     for _, e in ipairs(require("cjson").decode(res.body)) do
-      table.insert(l, e.LTime)
+      table.insert(l, e.ID)
     end
 
     ngx.timer.at(0, function()

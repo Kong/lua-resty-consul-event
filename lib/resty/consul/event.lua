@@ -103,7 +103,7 @@ local function watch_event(ctx)
   -- new event(s). consul's interface isn't great here
   -- we have no way to know which events returned we have
   -- already processed, so we need to walk each event and
-  -- confirm that the ltime is newer than the most recent
+  -- confirm that the ID is newer than the most recent
   -- event we've seen
   local events, err = cjson.decode(res.body)
   if not events then
@@ -113,8 +113,8 @@ local function watch_event(ctx)
   local new_events = {}
 
   for _, event in ipairs(events) do
-    if not ctx.ltime_lru:get(event.LTime) then
-      ctx.ltime_lru:set(event.LTime, true)
+    if not ctx.id_lru:get(event.ID) then
+      ctx.id_lru:set(event.ID, true)
 
       insert(new_events, event)
     end
@@ -136,7 +136,7 @@ end
 -- spawns a thread to listen for events
 -- when a response is received, respawn the listen thread,
 -- and spawn threads for each event callback
-function _M:watch(name, callback, initial_index, seen_ltime)
+function _M:watch(name, callback, initial_index, seen_ids)
   local t = {} -- threads table
 
   local ctx    = copy(self)
@@ -147,9 +147,9 @@ function _M:watch(name, callback, initial_index, seen_ltime)
     ctx.index = initial_index
   end
 
-  if seen_ltime then
-    for i = 1, #seen_ltime do
-      ctx.ltime_lru:set(seen_ltime[i], true)
+  if seen_ids then
+    for i = 1, #seen_ids do
+      ctx.id_lru:set(seen_ids[i], true)
     end
   end
 
@@ -259,7 +259,7 @@ function _M.new(opts)
     token      = opts.token,
 
     -- index = nil,
-    ltime_lru = lru,
+    id_lru = lru,
     failures = 0,
   }, mt)
 end

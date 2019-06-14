@@ -59,11 +59,11 @@ Instantiates a new watch object. `opts` may be a table with the following option
 
 ## watch
 
-`syntax: e:watch(name, callback, initial_index, seen_ltime)`
+`syntax: e:watch(name, callback, initial_index, seen_ids)`
 
 Watch the Consul events API for events broadcast under a given `name`, and execute the function `callback` . `callback` is passed a single parameter `event`, which contains the body of a single event as defined by the [Consul Events API](https://www.consul.io/api/event.html). Callback functions are wrapped in `pcall`, so it is safe to throw an error from within this function. Callback functions may return a single value but this value is largely meaningless; currently, this single value is logged as a debug entry.
 
-The values `initial_index` and `seen_ltime` are optional, and can be used to initialize the watch against a certain state in the Consul events ring. `initial_index` is expected to be a string output by a previous `X-Consul-Index` header. `seen_ltime` is expected to be a list of Consul Event LTime values for whom callback events should not be executed. For example, the current state of the event buffer can be used to initialize a given watch:
+The values `initial_index` and `seen_ids` are optional, and can be used to initialize the watch against a certain state in the Consul events ring. `initial_index` is expected to be a string output by a previous `X-Consul-Index` header. `seen_ids` is expected to be a list of Consul Event ID values for whom callback events should not be executed. For example, the current state of the event buffer can be used to initialize a given watch:
 
 ```lua
 local h = require("resty.http").new()
@@ -87,7 +87,7 @@ end
 local l = {}
 
 for _, e in ipairs(require("cjson").decode(res.body)) do
-  table.insert(l, e.LTime)
+  table.insert(l, e.ID)
 end
 
 ngx.timer.at(0, function()
